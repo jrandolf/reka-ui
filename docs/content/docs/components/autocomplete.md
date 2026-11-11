@@ -154,6 +154,8 @@ The button that clears the input text and resets the value.
 
 Shown when none of the items match the query.
 
+It renders with `role="option"` and `aria-disabled="true"`, because a listbox must contain an option. Pass another `role` if the part is outside the content.
+
 <!-- @include: @/meta/ComboboxEmpty.md -->
 
 ### Portal

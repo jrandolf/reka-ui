@@ -4,7 +4,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 import { axe } from 'vitest-axe'
 import { defineComponent, h, inject, nextTick, ref } from 'vue'
 import { handleSubmit, sleep } from '@/test'
-import { ComboboxAnchor, ComboboxContent, ComboboxInput, ComboboxItem, ComboboxPortal, ComboboxRoot, ComboboxTrigger, ComboboxViewport, ComboboxVirtualizer } from '.'
+import { ComboboxAnchor, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxPortal, ComboboxRoot, ComboboxTrigger, ComboboxViewport, ComboboxVirtualizer } from '.'
 import Combobox from './story/_Combobox.vue'
 import ComboboxObject from './story/_ComboboxObject.vue'
 import ComboboxTagsInput from './story/_ComboboxTagsInput.vue'
@@ -516,6 +516,38 @@ describe('given default Combobox', () => {
     //     })
     //   })
     // })
+  })
+})
+
+describe('given a Combobox with an empty part', () => {
+  const Fixture = defineComponent({
+    components: { ComboboxAnchor, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxRoot, ComboboxViewport },
+    template: `<ComboboxRoot>
+  <ComboboxAnchor><ComboboxInput aria-label="Fruit" /></ComboboxAnchor>
+  <ComboboxContent aria-label="Fruits">
+    <ComboboxViewport>
+      <ComboboxEmpty>No options</ComboboxEmpty>
+      <ComboboxItem value="Apple">Apple</ComboboxItem>
+      <ComboboxItem value="Banana">Banana</ComboboxItem>
+    </ComboboxViewport>
+  </ComboboxContent>
+</ComboboxRoot>`,
+  })
+
+  beforeEach(() => {
+    document.body.innerHTML = ''
+    window.HTMLElement.prototype.scrollIntoView = vi.fn()
+  })
+
+  it('should keep the required children of the listbox when no option matches the term', async () => {
+    const wrapper = mount(Fixture, { attachTo: document.body })
+    const input = wrapper.find('input')
+    await input.trigger('keydown', { key: 'ArrowDown' })
+    await input.setValue('zzz')
+    await vi.waitFor(() => expect(wrapper.text()).toContain('No options'))
+
+    expect(await axe(document.body, { runOnly: { type: 'rule', values: ['aria-required-children'] } })).toHaveNoViolations()
+    wrapper.unmount()
   })
 })
 
